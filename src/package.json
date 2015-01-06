@@ -1,0 +1,14 @@
+{
+  "name": "dissertation",
+  "version": "1.0.0",
+  "dependencies": {
+    "express": "^4.10.7",
+    "hiredis": "^0.1.17",
+    "redis": "^0.12.1",
+    "socket.io": "^1.2.1",
+    "socket.io-redis": "^0.1.4"
+  },
+  "scripts": {
+  	"start": "DEBUG=socket.io* node socket.js"
+  }
+}
