@@ -13,15 +13,12 @@
         "lruCache": {
           "size": 5,
           "ttl": 5
-        }
-    },
-    "https": {
-        "port": 443,
-        "secureProtocol": "SSLv23_method",
-        "secureOptions": 50331648,
-        "key": "/certs/server.key",
-        "cert": "/certs/devstuff_me_bundle.crt",
-        "ciphers": "DH+ECDSA+AESGCM EECDH+aRSA+AESGCM EECDH+ECDSA+SHA384 EECDH+ECDSA+SHA256 EECDH+a RSA+SHA384 EECDH+aRSA+SHA256 EECDH+aRSA+RC4 EECDH EDH+aRSA RC4 !aNULL !eNULL !LOW !3DES !MD5 !EXP !PSK !SRP !DSS !RC4",
-        "honorCipherOrder": true
+        },
+        "https": {
+          "port": 443,
+          "key": "/certs/server.key",
+          "cert": "/certs/devstuff_me_bundle.crt",
+          "secureProtocol": "SSLv23_method"
+      }
     }
 }
