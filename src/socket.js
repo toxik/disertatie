@@ -15,6 +15,11 @@ server.listen(port, function () {
 // Routing
 app.use(express.static(__dirname + '/public'));
 
+app.get('/*',function(req,res,next){
+  res.header('X-Served-By' , process.env.HOSTNAME );
+  next(); // http://expressjs.com/guide.html#passing-route control
+});
+
 // Chatroom
 
 // usernames which are currently connected to the chat

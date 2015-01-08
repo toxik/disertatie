@@ -1,8 +1,7 @@
 {
     "server": {
         "debug": true,
-        "accessLog": "/tmp/proxy2_access.log",
-        "port": 80,
+        "accessLog": "/var/log/hipache/hipache.log",
         "workers": 2,
         "maxSockets": 100,
         "tcpTimeout": 10,
@@ -14,11 +13,16 @@
           "size": 5,
           "ttl": 5
         },
+        "http": {
+          "port": 80,
+          "bind: [ "0.0.0.0" ]
+        },
         "https": {
           "port": 443,
           "key": "/certs/server.key",
           "cert": "/certs/devstuff_me_bundle.crt",
           "secureProtocol": "SSLv23_method"
-      }
+      },
+      "driver": "redis://redis"
     }
 }
