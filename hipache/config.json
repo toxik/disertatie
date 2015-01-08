@@ -1,28 +1,30 @@
 {
     "server": {
-        "debug": true,
-        "accessLog": "/var/log/hipache/hipache.log",
-        "workers": 2,
+        "debug": false,
+        "workers": 10,
         "maxSockets": 100,
-        "tcpTimeout": 10,
-        "deadBackendTTL": 100,
-        "deadBackendOn500": true,
+        "tcpTimeout": 30,
+        "deadBackendTTL": 30,
         "retryOnError": 3,
+        "accessLog": "/var/log/hipache/access.log",
         "httpKeepAlive": false,
-        "lruCache": {
-          "size": 5,
-          "ttl": 5
-        },
-        "http": {
-          "port": 80,
-          "bind: [ "0.0.0.0" ]
-        },
-        "https": {
-          "port": 443,
-          "key": "/certs/server.key",
-          "cert": "/certs/devstuff_me_bundle.crt",
-          "secureProtocol": "SSLv23_method"
-      },
-      "driver": "redis://redis"
-    }
+        "deadBackendOn500": true,
+        "staticDir": null
+    },
+    "http": {
+        "port": 80,
+        "bind": ["0.0.0.0"]
+    },
+    "https": {
+        "bind": [],
+        "port": 443,
+        "ca": [],
+        "secureProtocol": "SSLv23_method",
+        "secureOptions": 50331648,
+        "key": "/certs/server.key",
+        "cert": "/certs/devstuff_me_bundle.crt",
+        "ciphers": "DH+ECDSA+AESGCM EECDH+aRSA+AESGCM EECDH+ECDSA+SHA384 EECDH+ECDSA+SHA256 EECDH+a RSA+SHA384 EECDH+aRSA+SHA256 EECDH+aRSA+RC4 EECDH EDH+aRSA RC4 !aNULL !eNULL !LOW !3DES !MD5 !EXP !PSK !SRP !DSS !RC4",
+        "honorCipherOrder": true
+    },
+    "driver": "redis:"
 }
