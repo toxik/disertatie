@@ -969,3 +969,13 @@ $4
 decr
 $10
 clients_no
+*2
+$4
+incr
+$10
+clients_no
+*2
+$4
+decr
+$10
+clients_no
