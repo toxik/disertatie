@@ -13,12 +13,7 @@ server.listen(port, function () {
 });
 
 // Routing
-app.use(express.static(__dirname + '/public'));
-
-app.get('/*',function(req,res,next){
-  res.header('X-Served-By' , process.env.HOSTNAME );
-  next(); // http://expressjs.com/guide.html#passing-route control
-});
+app.use(express.static(__dirname + '/public', {etag: false,maxAge: '1y',setHeaders: function (res, path, stat) {res.set('x-hostname', process.env.HOSTNAME )}}));
 
 // Chatroom
 
