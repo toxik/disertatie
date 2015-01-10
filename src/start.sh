@@ -1,7 +1,7 @@
 #!/bin/bash
 #docker run -it -d --name node-$1 -p $1:$1 -v "$(pwd)":/usr/src/myapp -e "'PORT=$1'" -w /usr/src/myapp node:slim npm start
-container=$(docker run -it -d --expose 3000 -P -v "$(pwd)":/usr/src/myapp --link redis:redis -w /usr/src/myapp node:slim npm start)
-echo $(docker inspect -f '{{.Name}}' $container)
+container=$(docker run -it -d -e "DEBUG=socket.io*" --expose 3000 -v "$(pwd)":/usr/src/myapp --link redis:redis -w /usr/src/myapp node:slim node socket.js)
+echo $(docker inspect -f '{{.Name}}' $container) #&& touch .$(docker inspect -f '{{.Name}}' $container) 
 new_port=$(docker port $container | grep '3000/tcp' | awk -F: '{print $2}')
 new_host=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' $container)
 #new_host=docker

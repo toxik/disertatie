@@ -25,6 +25,8 @@ $(function() {
 
   var socket = io();
 
+  window.socket = socket;
+
   function addParticipantsMessage (data) {
     var message = '';
     if (data.numUsers === 1) {
@@ -262,5 +264,16 @@ $(function() {
   // Whenever the server emits 'stop typing', kill the typing message
   socket.on('stop typing', function (data) {
     removeChatTyping(data);
+  });
+
+  // Started a new game
+  socket.on('new game sid', function (game) {
+    window.history.replaceState({}, '', '/'+ game.type +'/'+ game.id);
+  });
+
+  // received game move
+  // Started a new game
+  socket.on('game move', function (game) {
+    console.log(game);
   });
 });
