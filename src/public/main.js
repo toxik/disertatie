@@ -269,6 +269,10 @@ $(function() {
   // Started a new game
   socket.on('new game sid', function (game) {
     window.history.replaceState({}, '', '/'+ game.type +'/'+ game.id);
+    qr.canvas({
+        canvas: document.getElementById('qrcode'),
+        value: document.location.href
+      });
   });
 
   // received game move

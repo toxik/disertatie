@@ -36,8 +36,11 @@ app.use(express.static(__dirname + '/public', {
 );
 
 var gameid = null;
-app.get('/ttt/:gameid', function (req, res) {
+var gametype = null;
+app.get('/:gametype/:gameid', function (req, res) {
+  if (req.params.gametype !== 'ttt') { return; }
   gameid = req.params.gameid;
+  gametype = req.params.gametype;
   res.sendFile(__dirname + '/public/index.html');
 });
 
