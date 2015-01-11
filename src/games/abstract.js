@@ -32,7 +32,7 @@ var AbstractGame = function (session) {
 		return this.state;
 	}
 	this.start = function() {
-		if (this.playersNo === this.state.players.length) {
+		if (this.playersNo === this.state.players.length && this.state.game === 'new') {
 			this.state.game = 'progressing';
 			this.state.currPlayer = this.nextPlayer();
 		}

@@ -85,7 +85,7 @@ io.on('connection', function (socket) {
 				if (game.state) {
 					saveGame(game, function(data) {
 						socket.emit('game joined', game);
-						socket.to(game.id).emit('game player joined', game.state);
+						socket.to(game.id).emit('game state', game.state);
 					});
 				}
 			});

@@ -16,6 +16,7 @@ var TicTacToe = function(session) {
             if ((wins[i] & this.state.score[this.state.currPlayer]) === wins[i]) {
             	this.state.game = 'finished';
             	this.state.winner = this.state.currPlayer;
+            	break;
             }
         }
         // see if there are any more possible moves

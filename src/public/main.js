@@ -238,6 +238,7 @@ $(function() {
   });
 
   var $ttt = $('#ttt');
+  var $gameState = $('#game_state');
 
   $ttt.find('table td').on('click', function() { 
     socket.emit('game move', { index: $(this).data('idx') } ); 
@@ -288,12 +289,14 @@ $(function() {
   socket.on('new game sid', function (game) {
     window.history.pushState({}, '', '/g/'+ encodeURIComponent(game.id));
     currentGame = game;
+    var state = game.state;
     $('#qrcode').hide(0);
     qr.canvas({
         canvas: document.getElementById('qrcode'),
         value: document.location.href
       });
     $('#qrcode').fadeIn(1200);
+    handleGameState(state);
   });
 
 
@@ -306,10 +309,7 @@ $(function() {
         value: document.location.href
       });
     $('#qrcode').fadeIn(1200);
-    $ttt.find('table td').each(function(idx,el) { 
-      el.innerHTML = game.state.board[idx] === -1 ? '&nbsp;' :
-                     game.state.board[idx] === 1 ? '0' : 'X';
-    });
+    handleGameState(game.state);
   });
 
   // received game move
@@ -331,10 +331,43 @@ $(function() {
   });
 
   socket.on('game state', function (game) {
-    $ttt.find('table td').each(function(idx,el) { 
-      el.innerHTML = game.board[idx] === -1 ? '&nbsp;' :
-                     game.board[idx] === 1 ? '0' : 'X';
-    });
+    handleGameState(game);
   });
+
+  function handleGameState(state) {
+    if (state.gametype == 'ttt') {
+        $ttt.find('table td').each(function(idx,el) { 
+        el.innerHTML = state.board[idx] === -1 ? '&nbsp;' :
+                       state.board[idx] === 1 ? '0' : 'X';
+      });
+      var gameState = 'no game';
+      if (state.game === 'new') {
+        gameState = 'waiting for second player';
+      } else if (state.game === 'finished') {
+        if (state.winner === null) {
+          gameState = 'DRAW!';
+        } else if (state.players[state.winner] === socket.io.engine.id) {
+          gameState = 'you WON!';
+        } else if (state.players[~~!state.winner] === socket.io.engine.id) {
+          gameState = 'you lost :(';
+        } else {
+          gameState = (state.winner === 0 ? 'X' : '0') + ' won';
+        }
+        
+      } else {
+        if (state.currPlayer != null) {
+          if (state.players[state.currPlayer] === socket.io.engine.id) {
+            gameState = 'your turn';
+          } else if (state.players[~~!state.currPlayer] === socket.io.engine.id) {
+            gameState = 'waiting for opponent\'s turn';
+          } else {
+            gameState =(state.currPlayer === 0 ? 'X' : '0') + ' is on the move';
+          }
+        }
+      }
+      $gameState.html(gameState);
+    }
+
+  }
 
 });
