@@ -237,6 +237,12 @@ $(function() {
     $inputMessage.focus();
   });
 
+  var $ttt = $('#ttt');
+
+  $ttt.find('table td').on('click', function() { 
+    socket.emit('game move', { index: $(this).data('idx') } ); 
+  })
+
   // Socket events
 
   // Whenever the server emits 'login', log the login message
@@ -280,7 +286,7 @@ $(function() {
 
   // Started a new game
   socket.on('new game sid', function (game) {
-    window.history.pushState({}, '', '/g/'+ game.id);
+    window.history.pushState({}, '', '/g/'+ encodeURIComponent(game.id));
     currentGame = game;
     $('#qrcode').hide(0);
     qr.canvas({
@@ -293,13 +299,17 @@ $(function() {
 
   socket.on('game joined', function (game) {
     currentGame = game;
-    window.history.pushState({}, '', '/g/'+ game.id);
+    window.history.pushState({}, '', '/g/'+ encodeURIComponent(game.id));
     $('#qrcode').hide(0);
     qr.canvas({
         canvas: document.getElementById('qrcode'),
         value: document.location.href
       });
     $('#qrcode').fadeIn(1200);
+    $ttt.find('table td').each(function(idx,el) { 
+      el.innerHTML = game.state.board[idx] === -1 ? '&nbsp;' :
+                     game.state.board[idx] === 1 ? '0' : 'X';
+    });
   });
 
   // received game move
@@ -312,4 +322,19 @@ $(function() {
   socket.on('game chat', function (game) {
     addChatMessage(game);
   });
+
+  $('#new_ttt').on('click', function(){ 
+    socket.emit('request game sid', {type: 'ttt'});
+     $ttt.find('table td').each(function(idx,el) { 
+      el.innerHTML = '&nbsp;';
+    });
+  });
+
+  socket.on('game state', function (game) {
+    $ttt.find('table td').each(function(idx,el) { 
+      el.innerHTML = game.board[idx] === -1 ? '&nbsp;' :
+                     game.board[idx] === 1 ? '0' : 'X';
+    });
+  });
+
 });

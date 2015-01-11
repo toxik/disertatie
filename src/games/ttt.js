@@ -30,12 +30,19 @@ var TicTacToe = function(session) {
         return this.state.game === 'finished';
   	}
   	this.checkAndMakeMove = function(move) {
+  		// make sure we're dealing with integers
+  		move.index = parseInt(move.index, 10);
+
+  		// disregard if move is outside of bounds
+  		if (move.index < 0 || move.index > 8) return false;
+
   		// disregard move if it doesn't come the current player
   		if ( this.state.currPlayer !== this.state.players.indexOf(move.actor) ) return false;
 
   		// disergard move if the index is currently occupied
   		if (this.state.board[move.index] !== -1) return false;
   		
+
   		// everything fine, change the state and score
   		this.state.game = 'progressing';
   		this.state.board[ move.index ] = this.state.currPlayer;

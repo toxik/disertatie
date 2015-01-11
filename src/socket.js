@@ -14,7 +14,7 @@ var port = process.env.PORT || 3000;
 var createGameId = function(sessionId) { 
 	return crypto.createHash('sha256')
 			 .update(sessionId + new Date())
-			 .digest('hex');
+			 .digest('base64');
 }
 
 var ttt = require('./games/ttt');
@@ -34,7 +34,7 @@ app.use(express.static(__dirname + '/public', {
 		etag: false,
 		maxAge: '1y',
 		setHeaders: function (res, path, stat) {
-				res.set('x-hostname', process.env.HOSTNAME )
+			res.set('x-hostname', process.env.HOSTNAME )
 		}
 	})
 );
@@ -79,7 +79,6 @@ io.on('connection', function (socket) {
 		loadGame(gameid, function(game){
 			socket.currentgame = gameid;
 			socket.join(gameid, function() {				
-				console.log('Joining new game:' + gameid, game.state);
 				game.addPlayer(socket.id);
 				game.start();
 
@@ -140,7 +139,8 @@ io.on('connection', function (socket) {
 		//TODO: replace this with `new data.type(socket.currentgame)` or smth
 		game = new ttt(socket.currentgame);
 		game.addPlayer(socket.id);
-		redis_client.lpush('game:' + game.id, JSON.stringify(game.state), function(e, data) {
+		saveGame(game, function(e, data) {
+			console.log('creating game ', game.id);
 			socket.join(game.id, function() {
 				socket.emit('new game sid', game);
 			});
@@ -149,15 +149,12 @@ io.on('connection', function (socket) {
 
 	socket.on('game move', function (data) {
 		if (typeof socket.currentgame === 'undefined') return;
-		console.log('game move', socket.currentgame, data);
 		loadGame(socket.currentgame, function(game) {
 			var move = data;
-			console.log(socket);
 			move.actor = socket.id
 			// save game only if it was a legal move
 			if (game.makeMove(data)) {
 				saveGame(game, function(data){
-					console.log('Saving new state', game.state);
 					socket.to(game.id).emit('game state', game.state);
 					socket.emit('game state', game.state);
 				});

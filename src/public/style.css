@@ -148,3 +148,20 @@ ul {
   right: 0;
   width: 100%;
 }
+
+#qrcode { 
+    position:fixed; 
+    right:0;
+    top:20px; 
+    width:300px;
+    height:300px
+}
+
+#ttt {
+  position: fixed;
+  right: 320px;
+  top: 20px;
+  width: 200px;
+}
+#ttt table td { text-align: center; line-height: 46px; cursor: pointer; }
+#ttt table td:hover { background: #efefef; }
