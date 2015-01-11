@@ -22,6 +22,7 @@ $(function() {
   var typing = false;
   var lastTypingTime;
   var $currentInput = $usernameInput.focus();
+  var currentGame = {};
 
   var socket = io();
 
@@ -58,15 +59,21 @@ $(function() {
     var message = $inputMessage.val();
     // Prevent markup from being injected into the message
     message = cleanInput(message);
+    var currentUsername = username,
+        eventName = 'new message';
     // if there is a non-empty message and a socket connection
+    if (currentGame) {
+      currentUsername += ' (private)';
+      eventName = 'game chat';
+    }
     if (message && connected) {
       $inputMessage.val('');
       addChatMessage({
-        username: username,
+        username: currentUsername,
         message: message
       });
       // tell server to execute 'new message' and send along one parameter
-      socket.emit('new message', message);
+      socket.emit(eventName, message);
     }
   }
 
@@ -209,6 +216,11 @@ $(function() {
     }
   });
 
+  if (document.location.hash.substr(1).length) {
+    $usernameInput.val(document.location.hash.substr(1));
+    setUsername();
+  }
+
   $inputMessage.on('input', function() {
     updateTyping();
   });
@@ -268,16 +280,36 @@ $(function() {
 
   // Started a new game
   socket.on('new game sid', function (game) {
-    window.history.replaceState({}, '', '/'+ game.type +'/'+ game.id);
+    window.history.pushState({}, '', '/g/'+ game.id);
+    currentGame = game;
+    $('#qrcode').hide(0);
     qr.canvas({
         canvas: document.getElementById('qrcode'),
         value: document.location.href
       });
+    $('#qrcode').fadeIn(1200);
+  });
+
+
+  socket.on('game joined', function (game) {
+    currentGame = game;
+    window.history.pushState({}, '', '/g/'+ game.id);
+    $('#qrcode').hide(0);
+    qr.canvas({
+        canvas: document.getElementById('qrcode'),
+        value: document.location.href
+      });
+    $('#qrcode').fadeIn(1200);
   });
 
   // received game move
   // Started a new game
   socket.on('game move', function (game) {
     console.log(game);
+  });
+
+  // received game chat
+  socket.on('game chat', function (game) {
+    addChatMessage(game);
   });
 });
