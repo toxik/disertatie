@@ -8,20 +8,22 @@ var AbstractGame = function (session) {
 		spectators: [ ], 
 		board: 	    [ ],
 		currPlayer: null,
-		winner: 	null
+		winner: 	null,
+		lastmove: 	{}
 	},
 	this.nextPlayer	= function() { return 0 };
 	this.makeMove	= function(move) {
-				console.log('in makeMove');
+				var lastmove = null
 				if (this.state.game !== 'finished' && this.checkAndMakeMove(move)) {
+					lastmove = move;
 					if (!this.checkEnd()) {
 						this.state.currPlayer = this.nextPlayer();
 					}
 				} // if invalid move ignore
-				return this.state;
+				this.state.lastmove = lastmove;
+				return lastmove !== null;
 			};
 	this.addPlayer = function(sid) { 
-		console.log('In add player', this.state);
 		if (this.state['players'].length < this.playersNo) {
 			this.state.players.push(sid); 
 		} else {

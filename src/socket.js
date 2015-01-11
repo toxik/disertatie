@@ -1,3 +1,4 @@
+"use strict"
 // Setup basic express server
 var express = require('express');
 var app = express();
@@ -49,32 +50,45 @@ var usernames = {};
 var numUsers = 0;
 var skt = { on: function() {} };
 
+function loadGame(gameId, cb) {
+	redis_client.lrange('game:' + gameId, 0, 0, function(e, data){
+		if (!data) {
+			return
+		}
+		var game = null;
+		if (data[0].gametype = 'ttt') {
+			game = new ttt(gameid);
+		}
+		game.state = JSON.parse(data[0]);
+		cb(game);
+	});
+}
+
+function saveGame(game, cb) { 
+	redis_client.lpush('game:' + game.id, JSON.stringify(game.state), function(e, data) {
+		cb(data);
+	});
+}
+
 io.on('connection', function (socket) {
 	skt = socket;
 	var addedUser = false;
 
-	if (gameid != null) { // so we're trying to join a game :)
-		// let's see if the game exists first
-		redis_client.lrange('game:' + gameid, 0, 0, function(e, data){
-			if (!data) {
-				return
-			}
-			var game = null;
+	// so we're trying to join a game :)
+	if (gameid != null) { 
+		loadGame(gameid, function(game){
 			socket.currentgame = gameid;
-			if (data[0].gametype = 'ttt') {
-				game = new ttt(gameid);
-			}
-
-			game.state = JSON.parse(data[0]);
 			socket.join(gameid, function() {				
 				console.log('Joining new game:' + gameid, game.state);
 				game.addPlayer(socket.id);
+				game.start();
 
-				if (game.state)
-				redis_client.lpush('game:' + game.id, JSON.stringify(game.state), function(e, data) {
-					socket.emit('game joined', game);
-					socket.to(game.id).emit('game player joined', game.state);
-				});
+				if (game.state) {
+					saveGame(game, function(data) {
+						socket.emit('game joined', game);
+						socket.to(game.id).emit('game player joined', game.state);
+					});
+				}
 			});
 		});
 	}
@@ -119,15 +133,14 @@ io.on('connection', function (socket) {
 		socket.currentgame = createGameId(socket.id);
 		if (typeof data === 'undefined' || typeof data.type === 'undefined') return;
 		var game;
-		if (data.type === 'ttt') {
-			var game = new ttt(socket.currentgame);
-			game.addPlayer(socket.id);
-		} else {
+		if (data.type !== 'ttt') {
 			return;
 		}
 		// general code: push state to redis, join channel and emit event
+		//TODO: replace this with `new data.type(socket.currentgame)` or smth
+		game = new ttt(socket.currentgame);
+		game.addPlayer(socket.id);
 		redis_client.lpush('game:' + game.id, JSON.stringify(game.state), function(e, data) {
-			console.log('redis push', e, data);
 			socket.join(game.id, function() {
 				socket.emit('new game sid', game);
 			});
@@ -137,7 +150,20 @@ io.on('connection', function (socket) {
 	socket.on('game move', function (data) {
 		if (typeof socket.currentgame === 'undefined') return;
 		console.log('game move', socket.currentgame, data);
-		socket.to(socket.currentgame).emit('game move', data);
+		loadGame(socket.currentgame, function(game) {
+			var move = data;
+			console.log(socket);
+			move.actor = socket.id
+			// save game only if it was a legal move
+			if (game.makeMove(data)) {
+				saveGame(game, function(data){
+					console.log('Saving new state', game.state);
+					socket.to(game.id).emit('game state', game.state);
+					socket.emit('game state', game.state);
+				});
+			}
+		})
+		//socket.to(socket.currentgame).emit('game move', data);
 	});
 
 	socket.on('game chat', function (data) {

@@ -7,7 +7,6 @@ var TicTacToe = function(session) {
   	this.state.score = [ 0, 0 ];
   	this.state.board = [ -1, -1, -1, -1, -1, -1, -1, -1 , -1 ];
   	this.nextPlayer = function() { 
-  		console.log('in nextPlayer');
 		return this.state.currPlayer === 0 ? 1 : 0;
   	}
   	this.checkEnd = function() {
@@ -33,11 +32,9 @@ var TicTacToe = function(session) {
   	this.checkAndMakeMove = function(move) {
   		// disregard move if it doesn't come the current player
   		if ( this.state.currPlayer !== this.state.players.indexOf(move.actor) ) return false;
-  		console.log('current player matches the one in the move');
 
   		// disergard move if the index is currently occupied
   		if (this.state.board[move.index] !== -1) return false;
-  		console.log('move is legal');
   		
   		// everything fine, change the state and score
   		this.state.game = 'progressing';
