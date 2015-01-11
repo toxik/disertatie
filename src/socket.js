@@ -51,13 +51,14 @@ var numUsers = 0;
 var skt = { on: function() {} };
 
 function loadGame(gameId, cb) {
+	console.log('loading game ' + gameId + ' from redis');
 	redis_client.lrange('game:' + gameId, 0, 0, function(e, data){
 		if (!data) {
 			return
 		}
 		var game = null;
 		if (data[0].gametype = 'ttt') {
-			game = new ttt(gameid);
+			game = new ttt(gameId);
 		}
 		game.state = JSON.parse(data[0]);
 		cb(game);
@@ -75,10 +76,10 @@ io.on('connection', function (socket) {
 	var addedUser = false;
 
 	// so we're trying to join a game :)
-	if (gameid != null) { 
+	if (gameid != null) {
 		loadGame(gameid, function(game){
 			socket.currentgame = gameid;
-			socket.join(gameid, function() {				
+			socket.join(gameid, function() {			
 				game.addPlayer(socket.id);
 				game.start();
 
@@ -88,9 +89,11 @@ io.on('connection', function (socket) {
 						socket.to(game.id).emit('game state', game.state);
 					});
 				}
+				gameid = null;
 			});
 		});
 	}
+
 
 	// when the client emits 'new message', this listens and executes
 	socket.on('new message', function (data) {
