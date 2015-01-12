@@ -51,9 +51,8 @@ var numUsers = 0;
 var skt = { on: function() {} };
 
 function loadGame(gameId, cb) {
-	console.log('loading game ' + gameId + ' from redis');
 	redis_client.lrange('game:' + gameId, 0, 0, function(e, data){
-		if (!data) {
+		if (!data || !data.length) {
 			return
 		}
 		var game = null;
@@ -62,7 +61,7 @@ function loadGame(gameId, cb) {
 		}
 		game.state = JSON.parse(data[0]);
 		cb(game);
-	});
+	});	
 }
 
 function saveGame(game, cb) { 

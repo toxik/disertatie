@@ -329,6 +329,9 @@ $(function() {
       el.innerHTML = '&nbsp;';
     });
   });
+  $('#rematch_ttt').on('click', function(){ 
+    socket.emit('game move', {index: '255'});
+  });
 
   socket.on('game state', function (game) {
     handleGameState(game);
@@ -353,7 +356,6 @@ $(function() {
         } else {
           gameState = (state.winner === 0 ? 'X' : '0') + ' won';
         }
-        
       } else {
         if (state.currPlayer != null) {
           if (state.players[state.currPlayer] === socket.io.engine.id) {
@@ -363,6 +365,14 @@ $(function() {
           } else {
             gameState =(state.currPlayer === 0 ? 'X' : '0') + ' is on the move';
           }
+        }
+      }
+      if (state.lastMove && state.lastMove.index === 255) {
+        gameState += '; rematch requested, ';
+        if (state.lastMove.actor === socket.io.engine.id) {
+          gameState += ' waiting for response.';
+        } else {
+          gameState += ' confirm ?';
         }
       }
       $gameState.html(gameState);

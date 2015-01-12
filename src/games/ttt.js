@@ -5,6 +5,7 @@ var TicTacToe = function(session) {
   	this.playersNo = 2;
   	this.state.gametype = 'ttt';
   	this.state.score = [ 0, 0 ];
+  	this.state.rematch = [ 0, 0 ];
   	this.state.board = [ -1, -1, -1, -1, -1, -1, -1, -1 , -1 ];
   	this.nextPlayer = function() { 
 		return this.state.currPlayer === 0 ? 1 : 0;
@@ -42,7 +43,6 @@ var TicTacToe = function(session) {
 
   		// disergard move if the index is currently occupied
   		if (this.state.board[move.index] !== -1) return false;
-  		
 
   		// everything fine, change the state and score
   		this.state.game = 'progressing';
@@ -52,10 +52,28 @@ var TicTacToe = function(session) {
   	}
   	this.reset	= function() {
   		this.state.game = 'new';
-  		this.state.players = [ ];
   		this.state.board   = [ -1, -1, -1, -1, -1, -1, -1, -1, -1 ];
   		this.state.currPlayer = this.state.winner = null;
   		this.state.score   = [ 0, 0 ];
+  	}
+  	this.rematch = function(move) {
+  		// check if rematch is asked (magic code 255)
+  		if (move.index === 255) {
+  			this.state.rematch [ this.state.players.indexOf(move.actor)	] = 1;
+  			if (this.state.rematch[0] === 1 && this.state.rematch[1] === 1) {
+  				console.log('Starting a rematch !');
+  				this.state.game = 'progressing';
+		  		var p1 = this.state.players[0], p2 = this.state.players[1];
+		  		this.state.players = [ p2, p1 ]; // change roles
+		  		this.state.board   = [ -1, -1, -1, -1, -1, -1, -1, -1, -1 ];
+		  		this.state.currPlayer = this.state.winner = null;
+		  		this.state.score   = [ 0, 0 ];
+		  		this.state.rematch = [ 0, 0 ];
+		  		this.state.currPlayer = this.nextPlayer();
+  			}
+  			return true;
+  		}
+		return false;
   	}
 }
 TicTacToe.prototype = Object.create(AbstractGame.prototype);

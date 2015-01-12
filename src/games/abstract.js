@@ -7,13 +7,15 @@ var AbstractGame = function (session) {
 		players:    [ ],
 		spectators: [ ], 
 		board: 	    [ ],
+		rematch: 	[ ],
 		currPlayer: null,
 		winner: 	null,
 		lastmove: 	{}
 	},
 	this.nextPlayer	= function() { return 0 };
 	this.makeMove	= function(move) {
-				var lastmove = null
+				var lastmove = null;
+				if (this.rematch(move)) { this.state.lastmove = move; return true; }
 				if (this.state.game !== 'finished' && this.checkAndMakeMove(move)) {
 					lastmove = move;
 					if (!this.checkEnd()) {
@@ -41,6 +43,8 @@ var AbstractGame = function (session) {
 	this.checkEnd = function() { return false };
 	// this should also make the move
 	this.checkAndMakeMove = function() { return false };
+	//rematch
+	this.rematch = function(move) { return false };
 };
 
 module.exports = AbstractGame;
