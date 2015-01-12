@@ -240,8 +240,8 @@ $(function() {
   var $ttt = $('#ttt');
   var $gameState = $('#game_state');
 
-  $ttt.find('table td').on('click', function() { 
-    socket.emit('game move', { index: $(this).data('idx') } ); 
+  $ttt.find('table td').on('click', function() {
+    socket.emit('game move', { index: $(this).data('idx') } );
   })
 
   // Socket events
@@ -323,14 +323,14 @@ $(function() {
     addChatMessage(game);
   });
 
-  $('#new_ttt').on('click', function(){ 
+  $('#new_ttt').on('click', function(){
     socket.emit('request game sid', {type: 'ttt'});
-     $ttt.find('table td').each(function(idx,el) { 
+     $ttt.find('table td').each(function(idx,el) {
       el.innerHTML = '&nbsp;';
     });
   });
-  $('#rematch_ttt').on('click', function(){ 
-    socket.emit('game move', {index: '255'});
+  $('#rematch_ttt').on('click', function(){
+    socket.emit('game move', {index: 255});
   });
 
   socket.on('game state', function (game) {
@@ -339,7 +339,7 @@ $(function() {
 
   function handleGameState(state) {
     if (state.gametype == 'ttt') {
-        $ttt.find('table td').each(function(idx,el) { 
+        $ttt.find('table td').each(function(idx,el) {
         el.innerHTML = state.board[idx] === -1 ? '&nbsp;' :
                        state.board[idx] === 1 ? '0' : 'X';
       });
@@ -367,15 +367,21 @@ $(function() {
           }
         }
       }
-      if (state.lastMove && state.lastMove.index === 255) {
-        gameState += '; rematch requested, ';
-        if (state.lastMove.actor === socket.io.engine.id) {
-          gameState += ' waiting for response.';
+      var gameState2 = '';
+      if (state.lastmove && state.lastmove.index === 255) {
+        gameState2 = '; rematch requested, ';
+        if (state.lastmove.actor === socket.io.engine.id) {
+          gameState2 += ' waiting for response.';
+        } else if (state.players.indexOf(socket.io.engine.id) > -1) {
+          gameState2 += ' confirm ?';
         } else {
-          gameState += ' confirm ?';
+          gameState2 += ' waiting for confirmation by ' + (~~!state.players.indexOf(state.lastmove.actor) === 0 ? 'X' : '0');
+        }
+        if (state.rematch[0] === 0 && state.rematch[1] === 0) {
+          gameState2 = ' (rematch started)'
         }
       }
-      $gameState.html(gameState);
+      $gameState.html(gameState + gameState2);
     }
 
   }

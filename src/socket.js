@@ -7,11 +7,11 @@ var io = require('socket.io')(server);
 var redis = require('socket.io-redis');
 var crypto = require('crypto');
 var redis_client = require('redis').createClient(
-		process.env.REDIS_PORT_6379_TCP_PORT, 
+		process.env.REDIS_PORT_6379_TCP_PORT,
 		process.env.REDIS_PORT_6379_TCP_ADDR, {}
 );
 var port = process.env.PORT || 3000;
-var createGameId = function(sessionId) { 
+var createGameId = function(sessionId) {
 	return crypto.createHash('sha256')
 			 .update(sessionId + new Date())
 			 .digest('base64');
@@ -20,7 +20,7 @@ var createGameId = function(sessionId) {
 var ttt = require('./games/ttt');
 
 io.adapter(
-	redis({ host: process.env.REDIS_PORT_6379_TCP_ADDR, 
+	redis({ host: process.env.REDIS_PORT_6379_TCP_ADDR,
 				port: process.env.REDIS_PORT_6379_TCP_PORT })
 );
 
@@ -61,10 +61,10 @@ function loadGame(gameId, cb) {
 		}
 		game.state = JSON.parse(data[0]);
 		cb(game);
-	});	
+	});
 }
 
-function saveGame(game, cb) { 
+function saveGame(game, cb) {
 	redis_client.lpush('game:' + game.id, JSON.stringify(game.state), function(e, data) {
 		cb(data);
 	});
@@ -78,7 +78,7 @@ io.on('connection', function (socket) {
 	if (gameid != null) {
 		loadGame(gameid, function(game){
 			socket.currentgame = gameid;
-			socket.join(gameid, function() {			
+			socket.join(gameid, function() {
 				game.addPlayer(socket.id);
 				game.start();
 
@@ -110,7 +110,7 @@ io.on('connection', function (socket) {
 		// add the client's username to the global list
 		usernames[username] = username;
 		addedUser = true;
-		redis_client.incr('clients_no', function(e, resp){ 
+		redis_client.incr('clients_no', function(e, resp){
 			socket.emit('login', {
 				numUsers: resp
 			});
@@ -168,9 +168,9 @@ io.on('connection', function (socket) {
 	socket.on('game chat', function (data) {
 		if (typeof socket.currentgame === 'undefined') return;
 		console.log('game chat', socket.currentgame, socket.username, data);
-		socket.to(socket.currentgame).emit('game chat', { 
-				username: socket.username + ' (private)', 
-				message: data 
+		socket.to(socket.currentgame).emit('game chat', {
+				username: socket.username + ' (private)',
+				message: data
 		});
 	});
 
@@ -188,7 +188,7 @@ io.on('connection', function (socket) {
 			delete usernames[socket.username];
 			numUsers--;
 
-			redis_client.decr('clients_no', function(e, resp){ 
+			redis_client.decr('clients_no', function(e, resp){
 				// echo globally that this client has left
 				socket.broadcast.emit('user left', {
 					username: socket.username,
