@@ -332,10 +332,22 @@ $(function() {
   $('#rematch_ttt').on('click', function(){
     socket.emit('game move', {index: 255});
   });
+  $('#replay').on('click', function(){
+    socket.emit('game replay');
+  });
 
   socket.on('game state', function (game) {
     handleGameState(game);
   });
+
+  socket.on('game replay', handleGameStates);
+
+  function handleGameStates(states) {
+    if (states.length) {
+      handleGameState( JSON.parse(states.pop()) );
+      setTimeout( function() { handleGameStates(states); }, 1000 );
+    }
+  }
 
   function handleGameState(state) {
     if (state.gametype == 'ttt') {

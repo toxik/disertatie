@@ -64,6 +64,16 @@ function loadGame(gameId, cb) {
 	});
 }
 
+function loadGameMoves(gameId, cb) {
+	redis_client.lrange('game:' + gameId, 0, -1, function(e, data){
+		if (!data || !data.length) {
+			return
+		}
+		console.log('Some data:', data);
+		cb( data );
+	});
+}
+
 function saveGame(game, cb) {
 	redis_client.lpush('game:' + game.id, JSON.stringify(game.state), function(e, data) {
 		cb(data);
@@ -75,6 +85,7 @@ io.on('connection', function (socket) {
 	var addedUser = false;
 
 	// so we're trying to join a game :)
+	console.log('Gameid: ', gameid);
 	if (gameid != null) {
 		loadGame(gameid, function(game){
 			socket.currentgame = gameid;
@@ -131,9 +142,9 @@ io.on('connection', function (socket) {
 	});
 
 	socket.on('request game sid', function (data) {
+		var game;
 		socket.currentgame = createGameId(socket.id);
 		if (typeof data === 'undefined' || typeof data.type === 'undefined') return;
-		var game;
 		if (data.type !== 'ttt') {
 			return;
 		}
@@ -163,6 +174,15 @@ io.on('connection', function (socket) {
 			}
 		})
 		//socket.to(socket.currentgame).emit('game move', data);
+	});
+
+	socket.on('game replay', function (data) {
+		if (typeof socket.currentgame === 'undefined') return;
+		loadGameMoves(socket.currentgame, function(moves) {
+			if (moves) {
+				socket.emit('game replay', moves);	
+			}
+		})
 	});
 
 	socket.on('game chat', function (data) {
