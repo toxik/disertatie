@@ -69,7 +69,6 @@ function loadGameMoves(gameId, cb) {
 		if (!data || !data.length) {
 			return
 		}
-		console.log('Some data:', data);
 		cb( data );
 	});
 }
@@ -85,7 +84,6 @@ io.on('connection', function (socket) {
 	var addedUser = false;
 
 	// so we're trying to join a game :)
-	console.log('Gameid: ', gameid);
 	if (gameid != null) {
 		loadGame(gameid, function(game){
 			socket.currentgame = gameid;

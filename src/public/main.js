@@ -312,12 +312,6 @@ $(function() {
     handleGameState(game.state);
   });
 
-  // received game move
-  // Started a new game
-  socket.on('game move', function (game) {
-    console.log(game);
-  });
-
   // received game chat
   socket.on('game chat', function (game) {
     addChatMessage(game);
@@ -336,7 +330,9 @@ $(function() {
     socket.emit('game replay');
   });
 
+  var replayFuncTimeout = null;
   socket.on('game state', function (game) {
+    clearTimeout(replayFuncTimeout);
     handleGameState(game);
   });
 
@@ -345,7 +341,7 @@ $(function() {
   function handleGameStates(states) {
     if (states.length) {
       handleGameState( JSON.parse(states.pop()) );
-      setTimeout( function() { handleGameStates(states); }, 1000 );
+      replayFuncTimeout = setTimeout( function() { handleGameStates(states); }, 1000 );
     }
   }
 
