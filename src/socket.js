@@ -5,13 +5,12 @@ var app = express();
 var server = require('http').createServer(app);
 var io = require('socket.io')(server);
 var redis = require('socket.io-redis');
-var crypto = require('crypto');
 var redis_client = require('redis').createClient(
 		process.env.REDIS_PORT_6379_TCP_PORT,
 		process.env.REDIS_PORT_6379_TCP_ADDR, {}
 );
 var port = process.env.PORT || 3000;
-var gameDao = require('./games/game-dao')(crypto, redis_client);
+var gameDao = require('./games/game-dao')(redis_client);
 
 io.adapter(
 	redis({ host: process.env.REDIS_PORT_6379_TCP_ADDR,
@@ -21,9 +20,15 @@ io.adapter(
 server.listen(port, function () {
 	console.info('Server listening at port %d', port);
 });
+app.enable('trust proxy');
 
 // Routing
-app.enable('trust proxy');
+var gameid = null;
+app.get('/g/:gameid', function (req, res) {
+	gameid = req.params.gameid;
+	res.sendFile(__dirname + '/public/index.html');
+});
+
 app.use(express.static(__dirname + '/public', {
 		maxAge: '1y',
 		etag: false,
@@ -32,12 +37,6 @@ app.use(express.static(__dirname + '/public', {
 		}
 	})
 );
-
-var gameid = null;
-app.get('/g/:gameid', function (req, res) {
-	gameid = req.params.gameid;
-	res.sendFile(__dirname + '/public/index.html');
-});
 
 // usernames which are currently connected to the chat
 var usernames = {};

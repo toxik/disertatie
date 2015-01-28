@@ -38,7 +38,7 @@ var TicTacToe = function(session) {
   		// disregard if move is outside of bounds
   		if (move.index < 0 || move.index > 8) return false;
 
-  		// disregard move if it doesn't come the current player
+  		// disregard move if it doesn't come from the current player
   		if ( this.state.currPlayer !== this.state.players.indexOf(move.actor) ) return false;
 
   		// disergard move if the index is currently occupied
