@@ -11,13 +11,7 @@ var redis_client = require('redis').createClient(
 		process.env.REDIS_PORT_6379_TCP_ADDR, {}
 );
 var port = process.env.PORT || 3000;
-var createGameId = function(sessionId) {
-	return crypto.createHash('sha256')
-			 .update(sessionId + new Date())
-			 .digest('base64');
-}
-
-var ttt = require('./games/ttt');
+var gameDao = require('./games/game-dao')(crypto, redis_client);
 
 io.adapter(
 	redis({ host: process.env.REDIS_PORT_6379_TCP_ADDR,
@@ -31,8 +25,8 @@ server.listen(port, function () {
 // Routing
 app.enable('trust proxy');
 app.use(express.static(__dirname + '/public', {
-		etag: false,
 		maxAge: '1y',
+		etag: false,
 		setHeaders: function (res, path, stat) {
 			res.set('x-hostname', process.env.HOSTNAME )
 		}
@@ -50,49 +44,20 @@ var usernames = {};
 var numUsers = 0;
 var skt = { on: function() {} };
 
-function loadGame(gameId, cb) {
-	redis_client.lrange('game:' + gameId, 0, 0, function(e, data){
-		if (!data || !data.length) {
-			return
-		}
-		var game = null;
-		if (data[0].gametype = 'ttt') {
-			game = new ttt(gameId);
-		}
-		game.state = JSON.parse(data[0]);
-		cb(game);
-	});
-}
-
-function loadGameMoves(gameId, cb) {
-	redis_client.lrange('game:' + gameId, 0, -1, function(e, data){
-		if (!data || !data.length) {
-			return
-		}
-		cb( data );
-	});
-}
-
-function saveGame(game, cb) {
-	redis_client.lpush('game:' + game.id, JSON.stringify(game.state), function(e, data) {
-		cb(data);
-	});
-}
-
 io.on('connection', function (socket) {
 	skt = socket;
 	var addedUser = false;
 
 	// so we're trying to join a game :)
 	if (gameid != null) {
-		loadGame(gameid, function(game){
+		gameDao.load(gameid, function(game){
 			socket.currentgame = gameid;
 			socket.join(gameid, function() {
 				game.addPlayer(socket.id);
 				game.start();
 
 				if (game.state) {
-					saveGame(game, function(data) {
+					gameDao.save(game, function(data) {
 						socket.emit('game joined', game);
 						socket.to(game.id).emit('game state', game.state);
 					});
@@ -132,25 +97,16 @@ io.on('connection', function (socket) {
 		});
 	});
 
-	// when the client emits 'typing', we broadcast it to others
-	socket.on('typing', function () {
-		socket.broadcast.emit('typing', {
-			username: socket.username
-		});
-	});
-
 	socket.on('request game sid', function (data) {
 		var game;
-		socket.currentgame = createGameId(socket.id);
 		if (typeof data === 'undefined' || typeof data.type === 'undefined') return;
 		if (data.type !== 'ttt') {
 			return;
 		}
 		// general code: push state to redis, join channel and emit event
-		//TODO: replace this with `new data.type(socket.currentgame)` or smth
-		game = new ttt(socket.currentgame);
-		game.addPlayer(socket.id);
-		saveGame(game, function(e, data) {
+		game = gameDao.create(data.type, socket.id);
+		gameDao.save(game, function(e, data) {
+			socket.currentgame = game.id;
 			console.log('creating game ', game.id);
 			socket.join(game.id, function() {
 				socket.emit('new game sid', game);
@@ -160,23 +116,22 @@ io.on('connection', function (socket) {
 
 	socket.on('game move', function (data) {
 		if (typeof socket.currentgame === 'undefined') return;
-		loadGame(socket.currentgame, function(game) {
+		gameDao.load(socket.currentgame, function(game) {
 			var move = data;
 			move.actor = socket.id
 			// save game only if it was a legal move
 			if (game.makeMove(data)) {
-				saveGame(game, function(data){
+				gameDao.save(game, function(data){
 					socket.to(game.id).emit('game state', game.state);
 					socket.emit('game state', game.state);
 				});
 			}
 		})
-		//socket.to(socket.currentgame).emit('game move', data);
 	});
 
 	socket.on('game replay', function (data) {
 		if (typeof socket.currentgame === 'undefined') return;
-		loadGameMoves(socket.currentgame, function(moves) {
+		gameDao.loadMoves(socket.currentgame, function(moves) {
 			if (moves) {
 				socket.emit('game replay', moves);	
 			}
@@ -189,13 +144,6 @@ io.on('connection', function (socket) {
 		socket.to(socket.currentgame).emit('game chat', {
 				username: socket.username + ' (private)',
 				message: data
-		});
-	});
-
-	// when the client emits 'stop typing', we broadcast it to others
-	socket.on('stop typing', function () {
-		socket.broadcast.emit('stop typing', {
-			username: socket.username
 		});
 	});
 

@@ -275,16 +275,6 @@ $(function() {
     removeChatTyping(data);
   });
 
-  // Whenever the server emits 'typing', show the typing message
-  socket.on('typing', function (data) {
-    addChatTyping(data);
-  });
-
-  // Whenever the server emits 'stop typing', kill the typing message
-  socket.on('stop typing', function (data) {
-    removeChatTyping(data);
-  });
-
   // Started a new game
   socket.on('new game sid', function (game) {
     window.history.pushState({}, '', '/g/'+ encodeURIComponent(game.id));
