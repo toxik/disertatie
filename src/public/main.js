@@ -62,7 +62,7 @@ $(function() {
     var currentUsername = username,
         eventName = 'new message';
     // if there is a non-empty message and a socket connection
-    if (currentGame) {
+    if (!$.isEmptyObject(currentGame)) {
       currentUsername += ' (private)';
       eventName = 'game chat';
     }
@@ -72,7 +72,6 @@ $(function() {
         username: currentUsername,
         message: message
       });
-      // tell server to execute 'new message' and send along one parameter
       socket.emit(eventName, message);
     }
   }
@@ -187,6 +186,7 @@ $(function() {
 
   // Gets the color of a username through our hash function
   function getUsernameColor (username) {
+    username = username.replace(' (private)', '');
     // Compute hash code
     var hash = 7;
     for (var i = 0; i < username.length; i++) {
@@ -250,7 +250,7 @@ $(function() {
   socket.on('login', function (data) {
     connected = true;
     // Display the welcome message
-    var message = "Welcome to Socket.IO Chat – ";
+    var message = "Bun venit !";
     log(message, {
       prepend: true
     });

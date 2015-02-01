@@ -14,7 +14,7 @@ var gameDao = require('./games/game-dao')(redis_client);
 
 io.adapter(
 	redis({ host: process.env.REDIS_PORT_6379_TCP_ADDR,
-				port: process.env.REDIS_PORT_6379_TCP_PORT })
+			port: process.env.REDIS_PORT_6379_TCP_PORT })
 );
 
 server.listen(port, function () {
@@ -41,10 +41,13 @@ app.use(express.static(__dirname + '/public', {
 // usernames which are currently connected to the chat
 var usernames = {};
 var numUsers = 0;
-var skt = { on: function() {} };
+
+// production settings for socket.io
+io.enable('browser client minification');
+io.enable('browser client etag');
+io.enable('browser client gzip');
 
 io.on('connection', function (socket) {
-	skt = socket;
 	var addedUser = false;
 
 	// so we're trying to join a game :)
