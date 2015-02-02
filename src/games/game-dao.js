@@ -3,7 +3,7 @@ var ttt = require('./ttt');
 var GameDao = function (redis_client) {
 	var createId = function(socketId) {
 		return crypto.createHash('sha256')
-				.update(socketId + new Date())
+				.update(socketId + new Date().getTime())
 				.digest('base64');
 	};
 	return {
