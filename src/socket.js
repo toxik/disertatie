@@ -42,11 +42,6 @@ app.use(express.static(__dirname + '/public', {
 var usernames = {};
 var numUsers = 0;
 
-// production settings for socket.io
-io.enable('browser client minification');
-io.enable('browser client etag');
-io.enable('browser client gzip');
-
 io.on('connection', function (socket) {
 	var addedUser = false;
 
