@@ -161,7 +161,8 @@ ul {
   position: fixed;
   right: 320px;
   top: 20px;
-  width: 200px;
+  width: 210px;
+  text-align: center;
 }
 #ttt table td { text-align: center; line-height: 46px; cursor: pointer; }
 #ttt table td:hover { background: #efefef; }
